@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadir Brito | Oficial</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@300;400;600;700&display=swap');
         body { background-color: #ffffff; font-family: 'Inter', sans-serif; color: #1a1a1a; }
@@ -15,6 +16,26 @@
         .resumo-texto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .conteudo-completo { line-height: 1.8; font-size: 1.25rem; }
         .conteudo-completo strong { font-weight: 800; color: #000; }
+        
+        /* Modal Galeria */
+        #gallery-modal { background: rgba(0,0,0,0.95); transition: 0.3s; }
+        .nav-btn { background: rgba(255,255,255,0.1); transition: 0.3s; }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* Botão WhatsApp */
+        .whatsapp-float {
+            position: fixed; width: 60px; height: 60px; bottom: 40px; right: 40px;
+            background-color: #25d366; color: #FFF; border-radius: 50px; text-align: center;
+            font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.3); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; animation: pulse 2s infinite;
+        }
+        .whatsapp-float:hover { transform: scale(1.1); color: white; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -31,34 +52,49 @@
         <div id="view-detalhe" class="hidden"></div>
     </main>
 
+    <a href="https://wa.me/5547988771313" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <div id="gallery-modal" class="fixed inset-0 z-[100] hidden flex flex-col items-center justify-center p-4">
+        <button onclick="fecharGaleria()" class="absolute top-6 right-6 text-white text-3xl"><i class="fas fa-times"></i></button>
+        
+        <div class="relative w-full max-w-4xl flex items-center justify-center">
+            <button onclick="fotoAnterior()" class="nav-btn absolute left-0 text-white p-4 text-2xl z-10"><i class="fas fa-chevron-left"></i></button>
+            <img id="gallery-img" src="" class="max-h-[80vh] max-w-full object-contain shadow-2xl">
+            <button onclick="proximaFoto()" class="nav-btn absolute right-0 text-white p-4 text-2xl z-10"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="mt-6 flex gap-4">
+            <a id="download-btn" href="" download class="bg-white text-black px-6 py-2 rounded-full font-bold uppercase text-sm">
+                <i class="fas fa-download mr-2"></i> Baixar Foto
+            </a>
+        </div>
+    </div>
+
     <footer class="py-12 bg-black text-white text-center mt-auto">
         <p>© 2026 Jadir Brito</p>
     </footer>
 
     <script>
-        // BANCO DE DADOS UNIFICADO
         const artigos = [
             {
                 id: "mural-eventos",
                 titulo: "PAI E FILHA - JADIR E TÁBITA",
                 imagemUrl: "img/foto01.jpg", 
-                resumo: "TE AMO MUITO - Um registro especial e eterno dedicado à minha filha Tábita.",
+                resumo: "TE AMO MUITO - Um registro especial e eterno dedicado à minha filha Tábitá.",
                 texto: `TE AMO MUITO`,
                 mural: [
-                    "img/foto01.jpg", 
-                    "img/foto02.jpg", 
-                    "img/foto03.jpg", 
-                    "img/foto04.jpg", 
-                    "img/foto05.jpg", 
-                    "img/foto06.jpg", 
-                    "img/foto07.jpg", 
-                    "img/foto08.jpg"
+                    "img/foto01.jpg", "img/foto02.jpg", "img/foto03.jpg", "img/foto04.jpg",
+                    "img/foto05.jpg", "img/foto06.jpg", "img/foto07.jpg", "img/foto08.jpg",
+                    "img/foto09.jpg", "img/foto10.jpg", "img/foto11.jpg", "img/foto12.jpg",
+                    "img/foto13.jpg", "img/foto14.jpg", "img/foto15.jpg", "img/foto16.jpg"
                 ]
             },
             {
                 id: "estudo-roma-constantino",
                 titulo: "Líderes em Roma até a Era de Constantino",
-                imagemUrl: "https://i.pinimg.com/736x/42/f2/96/42f2961022d12e01344932ade1a36ca0.jpg", 
+                imagemUrl: "https://images.unsplash.com/photo-1548543604-a87a990d1d9c?q=80&w=1200", 
                 resumo: "A história da liderança cristã em Roma, sob a ótica protestante, desde o apóstolo Pedro até o ano de 325 d.C.",
                 texto: `A história da liderança cristã em Roma, sob a ótica protestante, é a narrativa de pastores e mártires, não de monarcas espirituais. Este artigo detalha os nomes que preservaram a fé desde o apóstolo Pedro até a ascensão de Constantino, quando a igreja deixou as catacumbas para entrar nos palácios.
 
@@ -105,7 +141,9 @@
             }
         ];
 
-        // FUNÇÃO PARA MOSTRAR A LISTA
+        let fotosMural = [];
+        let fotoAtualIndex = 0;
+
         function mostrarHome() {
             document.getElementById('view-lista').classList.remove('hidden');
             document.getElementById('view-detalhe').classList.add('hidden');
@@ -125,7 +163,6 @@
             window.scrollTo(0,0);
         }
 
-        // FUNÇÃO PARA LER O ARTIGO COMPLETO
         function lerArtigo(id) {
             const art = artigos.find(a => a.id === id);
             if(art) {
@@ -144,9 +181,10 @@
                 `;
 
                 if(art.mural) {
+                    fotosMural = art.mural;
                     htmlContent += `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">`;
-                    art.mural.forEach(img => {
-                        htmlContent += `<img src="${img}" class="w-full h-40 object-cover rounded shadow-md">`;
+                    art.mural.forEach((img, index) => {
+                        htmlContent += `<img src="${img}" onclick="abrirGaleria(${index})" class="w-full h-40 object-cover rounded shadow-md cursor-zoom-in hover:scale-105 transition">`;
                     });
                     htmlContent += `</div>`;
                 }
@@ -156,12 +194,39 @@
             }
         }
 
-        // FUNÇÃO PARA DEIXAR O TEXTO EM NEGRITO ONDE TIVER **
+        // Funções da Galeria
+        function abrirGaleria(index) {
+            fotoAtualIndex = index;
+            const modal = document.getElementById('gallery-modal');
+            const img = document.getElementById('gallery-img');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            img.src = fotosMural[fotoAtualIndex];
+            downloadBtn.href = fotosMural[fotoAtualIndex];
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function fecharGaleria() {
+            const modal = document.getElementById('gallery-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function proximaFoto() {
+            fotoAtualIndex = (fotoAtualIndex + 1) % fotosMural.length;
+            abrirGaleria(fotoAtualIndex);
+        }
+
+        function fotoAnterior() {
+            fotoAtualIndex = (fotoAtualIndex - 1 + fotosMural.length) % fotosMural.length;
+            abrirGaleria(fotoAtualIndex);
+        }
+
         function formatarTexto(texto) {
             return texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         }
 
-        // INICIALIZA O SITE
         window.onload = mostrarHome;
     </script>
 </body>
